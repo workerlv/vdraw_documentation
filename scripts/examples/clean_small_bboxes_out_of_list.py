@@ -10,22 +10,21 @@ def sidebar():
     st.sidebar.divider()
     st.sidebar.subheader("parameters:")
     mask = st.sidebar.file_uploader("Upload binary mask", type=["jpg", "jpeg", "png"])
-    color_r = st.sidebar.number_input("Red", min_value=0, max_value=255, value=120)
-    color_g = st.sidebar.number_input("Green", min_value=0, max_value=255, value=120)
-    color_b = st.sidebar.number_input("Blue", min_value=0, max_value=255, value=120)
-    color = (color_b, color_g, color_r)
-    st.sidebar.write("Save image in path (use locally)")
+    min_width = st.sidebar.number_input("Min width", value=150)
+    min_height = st.sidebar.number_input("Min height", value=150)
 
-    return mask, color
+    return mask, min_width, min_height
 
 
 def documentation():
     st.divider()
-    st.subheader("combine_overlapping_bboxes()")
+    st.subheader("small_bboxes_out_of_list()")
     st.write("parameters:")
     st.code(
         """
         bboxes: List of BBox objects.
+        min_width: Minimum width of the bounding box (Optional)
+        min_height: Minimum height of the bounding box (Optional)
         """
     )
     st.write("returns:")
@@ -50,17 +49,17 @@ def raw_usage():
             debug_find_img = bbox.draw_bbox(debug_find_img, color=(120, 120, 120))
         
         # returns list of combined bounding boxes (BBox objects)
-        combined_bboxes = clean.combine_overlapping_bboxes(all_bboxes) 
+         without_small_bboxes = clean.small_bboxes_out_of_list(all_bboxes, min_width, min_height)
         
         # draw combined bounding boxes on mask (optional)
-        debug_comb_img = mask.copy()
-        for bbox in combined_bboxes:
-            debug_comb_img = bbox.draw_bbox(debug_comb_img, color=(120, 120, 120))
+        debug_img = mask.copy()
+        for bbox in without_small_bboxes:
+            debug_img = bbox.draw_bbox(debug_img, color=(120, 120, 120))
         
         """
     )
 
-    uploaded_mask, color = sidebar()
+    uploaded_mask, min_width, min_height = sidebar()
 
     if uploaded_mask is None:
         mask = draw_3_predefined_figures()
@@ -73,22 +72,24 @@ def raw_usage():
 
     debug_find_img = mask.copy()
     for bbox in all_bboxes:
-        debug_find_img = bbox.draw_bbox(debug_find_img, color=color)
+        debug_find_img = bbox.draw_bbox(debug_find_img, color=(120, 120, 120))
 
-    combined_bboxes = clean.combine_overlapping_bboxes(all_bboxes)
+    without_small_bboxes = clean.small_bboxes_out_of_list(
+        all_bboxes, min_width, min_height
+    )
 
-    debug_comb_img = mask.copy()
-    for bbox in combined_bboxes:
-        debug_comb_img = bbox.draw_bbox(debug_comb_img, color=color)
+    debug_img = mask.copy()
+    for bbox in without_small_bboxes:
+        debug_img = bbox.draw_bbox(debug_img, color=(120, 120, 120))
 
     col_1, col_2, col_3 = st.columns(3)
 
     col_1.image(mask, caption="input mask")
     col_2.image(debug_find_img, caption="image with raw bboxes")
-    col_2.image(debug_comb_img, caption="image with combined bboxes")
+    col_2.image(debug_img, caption="image without small bboxes")
 
     with col_3:
         st.write("bboxes result:")
         st.write(all_bboxes)
         st.write("combined bboxes result:")
-        st.write(combined_bboxes)
+        st.write(without_small_bboxes)
