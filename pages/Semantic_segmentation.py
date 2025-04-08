@@ -5,6 +5,7 @@ import importlib
 EXAMPLES = {
     "BBox": "bbox",
     "Clean -> combine overlapping bboxes": "clean_combine_overlapping_bboxes",
+    "Clean -> out of bounds bbox": "clean_out_of_bounds_bbox",
     "Clean -> small bboxes out of list": "clean_small_bboxes_out_of_list",
     "Draw -> overlay segmentation mask": "draw_overlay_segmentation_mask",
     "Find -> largest combined bbox": "find_largest_combined_bbox",
